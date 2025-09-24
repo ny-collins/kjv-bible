@@ -90,6 +90,7 @@
 <style>
   nav {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
     padding: 1em 2em;
@@ -102,10 +103,12 @@
   .back-link {
     text-decoration: none;
     color: var(--link-color);
+    margin-bottom: 1em;
   }
 
   .chapter-nav {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
     align-items: center;
     gap: 1em;
@@ -117,6 +120,7 @@
     margin: 0;
     color: var(--text-color);
     text-decoration: none;
+    text-align: center;
   }
 
   .nav-link {
@@ -165,6 +169,14 @@
       flex: 1;
       border-left: 1px solid var(--border-color);
       padding-left: 2em;
+    }
+
+    .back-link {
+      margin-bottom: 0;
+    }
+
+    .chapter-nav {
+      flex-wrap: nowrap;
     }
   }
 

@@ -102,13 +102,15 @@
 
   .controls-container {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2rem;
+    gap: 1em;
   }
 
   .search-container {
-    width: 60%;
+    flex-grow: 1;
   }
 
   input[type="text"] {
