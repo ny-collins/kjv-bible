@@ -95,9 +95,11 @@
     align-items: center;
     padding: 1em 2em;
     border-bottom: 1px solid var(--border-color);
-    background-color: var(--background-color);
+    background-color: var(--background-color-transparent);
+    backdrop-filter: blur(10px);
     position: sticky;
     top: 0;
+    z-index: 1;
   }
 
   .back-link {
@@ -169,6 +171,9 @@
       flex: 1;
       border-left: 1px solid var(--border-color);
       padding-left: 2em;
+      position: sticky;
+      top: 80px;
+      align-self: flex-start;
     }
 
     .back-link {

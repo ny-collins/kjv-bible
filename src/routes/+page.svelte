@@ -1,26 +1,34 @@
 <script>
+  import { goto, invalidate } from '$app/navigation';
   export let data;
   let searchTerm = '';
   let sortOrder = 'canonical';
+  let loading = false;
 
   let filteredBooks = data.books;
 
   function handleInput() {
     const lowerCaseSearchTerm = searchTerm.toLowerCase();
     filteredBooks = data.books.filter(book =>
-      book.name.toLowerCase().includes(lowerCaseSearchTerm)
+      book.displayName.toLowerCase().includes(lowerCaseSearchTerm)
     );
   }
 
   function sortBooks() {
     if (sortOrder === 'alphabetical') {
-      filteredBooks.sort((a, b) => a.name.localeCompare(b.name));
+      filteredBooks.sort((a, b) => a.displayName.localeCompare(b.displayName));
     } else if (sortOrder === 'chronological') {
       filteredBooks.sort((a, b) => a.chronologicalOrder - b.chronologicalOrder);
     } else {
       filteredBooks.sort((a, b) => a.canonicalOrder - b.canonicalOrder);
     }
     filteredBooks = filteredBooks;
+  }
+
+  async function handleCanonChange(e) {
+    const canon = e.target.value;
+    loading = true;
+    window.location.href = `?canon=${canon}`;
   }
 
   const structuredData = {
@@ -49,38 +57,58 @@
   <p class="subtitle">King James Version</p>
 </div>
 
-<div class="controls-container">
-  <div class="search-container">
-    <input type="text" placeholder="Search for a book..." bind:value={searchTerm} on:input={handleInput} />
-  </div>
-  <div class="sort-container">
-    <label for="sort-order">Sort by:</label>
-    <select id="sort-order" bind:value={sortOrder} on:change={sortBooks}>
-      <option value="canonical">Canonical</option>
-      <option value="alphabetical">Alphabetical</option>
-      <option value="chronological">Chronological</option>
+<div class="canon-container">
+    <label for="canon-select">Canon:</label>
+    <select id="canon-select" bind:value={data.canon} on:change={handleCanonChange}>
+      {#each Object.entries(data.collections) as [key, { name }]}
+        <option value={key}>{name}</option>
+      {/each}
     </select>
   </div>
-</div>
 
-<div class="book-list">
-    <div class="testament-group">
-      <h2 class="testament-title">Old Testament</h2>
-      <div class="books">
-        {#each filteredBooks.filter(b => b.testament === 'Old') as book}
-          <a href="/book/{book.name}" class="book-link">{book.displayName}</a>
-        {/each}
+  {#if loading}
+    <div class="loader">Loading...</div>
+  {:else}
+    <div class="controls-container">
+      <div class="search-container">
+        <input type="text" placeholder="Search for a book..." bind:value={searchTerm} on:input={handleInput} />
+      </div>
+      <div class="sort-container">
+        <label for="sort-order">Sort by:</label>
+        <select id="sort-order" bind:value={sortOrder} on:change={sortBooks}>
+          <option value="canonical">Canonical</option>
+          <option value="alphabetical">Alphabetical</option>
+          <option value="chronological">Chronological</option>
+        </select>
       </div>
     </div>
-    <div class="testament-group">
-      <h2 class="testament-title">New Testament</h2>
-      <div class="books">
-        {#each filteredBooks.filter(b => b.testament === 'New') as book}
-          <a href="/book/{book.name}" class="book-link">{book.displayName}</a>
-        {/each}
+    <div class="book-list">
+      <div class="testament-group">
+        <h2 class="testament-title">Old Testament</h2>
+        <div class="books">
+          {#each filteredBooks.filter(b => b.testament === 'Old') as book}
+            <a href="/book/{book.name}" class="book-link">{book.displayName}</a>
+          {/each}
+        </div>
+      </div>
+      <div class="testament-group">
+        <h2 class="testament-title">New Testament</h2>
+        <div class="books">
+          {#each filteredBooks.filter(b => b.testament === 'New') as book}
+            <a href="/book/{book.name}" class="book-link">{book.displayName}</a>
+          {/each}
+        </div>
+      </div>
+      <div class="testament-group">
+        <h2 class="testament-title">Apocrypha</h2>
+        <div class="books">
+          {#each filteredBooks.filter(b => b.testament === 'Apocrypha') as book}
+            <a href="/book/{book.name}" class="book-link">{book.displayName}</a>
+          {/each}
+        </div>
       </div>
     </div>
-  </div>
+  {/if}
 
 <style>
   .title-container {
@@ -127,6 +155,13 @@
     display: flex;
     align-items: center;
     gap: 0.5em;
+  }
+
+  .canon-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    margin-bottom: 1em;
   }
 
   select {
@@ -183,5 +218,11 @@
   .book-link:hover {
     background-color: var(--text-color);
     color: var(--background-color);
+  }
+
+  .loader {
+    text-align: center;
+    font-size: 1.5rem;
+    margin-top: 2em;
   }
 </style>
