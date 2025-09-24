@@ -1,3 +1,5 @@
 # allow crawling everything by default
 User-agent: *
-Disallow:
+Allow: /
+
+Sitemap: https://kjv-bible-7mw.pages.dev/sitemap.xml

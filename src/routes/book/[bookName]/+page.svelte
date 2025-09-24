@@ -1,86 +1,76 @@
 <script>
   export let data;
 
-  $: prevChapter = data.chapterNum > 1 ? data.chapterNum - 1 : null;
-  $: nextChapter = data.chapterNum < data.totalChapters ? data.chapterNum + 1 : null;
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Book",
+    "name": data.bookName,
+    "hasPart": data.chapters.map(chapter => ({
+      "@type": "CreativeWork",
+      "name": `${data.bookName} ${chapter}`
+    }))
+  };
 </script>
 
-<main>
-  <nav>
-    {#if prevChapter}
-      <a href="/book/{data.bookName}/{prevChapter}" class="nav-link">← Prev</a>
-    {:else}
-      <span class="nav-link disabled">← Prev</span>
-    {/if}
+<svelte:head>
+  <title>{data.bookName} | KJV Bible</title>
+  <meta name="description" content={`Read the book of ${data.bookName} from the King James Version of the Bible.`} />
+  <script type="application/ld+json">
+    {JSON.stringify(structuredData)}
+  </script>
+</svelte:head>
 
-    <a href="/book/{data.bookName}" class="title-link">{data.bookName} {data.chapterNum}</a>
-
-    {#if nextChapter}
-      <a href="/book/{data.bookName}/{nextChapter}" class="nav-link">Next →</a>
-    {:else}
-      <span class="nav-link disabled">Next →</span>
-    {/if}
-  </nav>
-
-  <article>
-    {#each data.verses as verse}
-      <p>
-        <span class="verse-num">{verse.verse}</span>
-        {verse.text}
-      </p>
-    {/each}
-  </article>
-</main>
+<a href="/" class="back-link">← Back to Books</a>
+<h1 class="title">{data.displayName}</h1>
+<div class="chapter-list">
+  {#each data.chapters as chapter}
+    <a href="/book/{data.bookName}/{chapter}" class="chapter-link">Chapter {chapter}</a>
+  {/each}
+</div>
 
 <style>
-  nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1em 2em;
-      border-bottom: 1px solid #eee;
-      background-color: #fff;
-      position: sticky;
-      top: 0;
+  .back-link {
+    display: block;
+    margin-bottom: 2rem;
+    color: var(--link-color);
+    text-decoration: none;
   }
-  .title-link {
-      font-size: 1.2rem;
-      font-weight: 600;
-      margin: 0;
-      color: #333;
-      text-decoration: none;
+
+  .title {
+    text-align: center;
+    font-size: 2.5rem;
+    color: var(--text-color);
+    margin-bottom: 2rem;
   }
-  .nav-link {
-      text-decoration: none;
-      color: #007bff;
-      padding: 0.5em;
+
+  .chapter-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 1em;
   }
-  .nav-link.disabled {
-      color: #ccc;
-      pointer-events: none;
+
+  @media (min-width: 1200px) {
+    .chapter-list {
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
   }
-  main {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-      Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    color: #333;
+
+  .chapter-link {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1.5em 1em;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--text-color);
+    transition: background-color 0.2s, color 0.2s;
+    font-size: 1.1rem;
   }
-  article {
-    max-width: 720px;
-    margin: 3em auto;
-    padding: 0 2em;
-  }
-  p {
-    font-size: 1.2rem;
-    line-height: 1.8;
-    margin-bottom: 1em;
-    position: relative;
-    padding-left: 2em;
-  }
-  .verse-num {
-    position: absolute;
-    left: 0;
-    top: 0;
-    font-size: 0.8rem;
-    color: #999;
+
+  .chapter-link:hover {
+    background-color: var(--text-color);
+    color: var(--background-color);
   }
 </style>

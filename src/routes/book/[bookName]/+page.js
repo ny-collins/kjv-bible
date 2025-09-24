@@ -1,15 +1,24 @@
+import booksWithMetadata from '$lib/data/BooksWithMetadata.json';
+
 /** @type {import('./$types').PageLoad} */
 export async function load({ params }) {
   const { bookName } = params;
 
-  // THE FIX: Use the reliable '$lib' alias instead of a relative path.
-  const bookModule = await import(`$lib/data/${bookName}.json`);
+  try {
+    const bookModule = await import(`$lib/data/${bookName}.json`);
+    const bookData = bookModule.default;
+    const chapters = bookData.chapters.map(ch => ch.chapter);
+    const book = booksWithMetadata.find(b => b.name === bookName);
 
-  const bookData = bookModule.default;
-  const chapters = bookData.chapters.map(ch => ch.chapter);
-
-  return {
-    bookName: bookName,
-    chapters: chapters
-  };
+    return {
+      bookName: bookName,
+      displayName: book.displayName,
+      chapters: chapters
+    };
+  } catch (error) {
+    return {
+      status: 404,
+      error: new Error(`Book not found: ${bookName}`)
+    };
+  }
 }

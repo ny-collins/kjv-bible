@@ -4,35 +4,69 @@
   // The reactive variables for our navigation
   $: prevChapter = data.chapterNum > 1 ? data.chapterNum - 1 : null;
   $: nextChapter = data.chapterNum < data.totalChapters ? data.chapterNum + 1 : null;
+
+  function cite() {
+    const citation = `${data.bookName} ${data.chapterNum}, King James Version.`;
+    navigator.clipboard.writeText(citation);
+    alert('Citation copied to clipboard!');
+  }
+
+  function download() {
+    const json = JSON.stringify(data.verses, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${data.bookName}-${data.chapterNum}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    "name": `${data.bookName} ${data.chapterNum}`,
+    "isPartOf": {
+      "@type": "Book",
+      "name": data.bookName
+    },
+    "text": data.verses.map(v => v.text).join(' ')
+  };
 </script>
 
-<div style="background-color: #ffffe0; border: 2px solid #f00; padding: 1em; margin: 1em;">
-  <h2>Debugging Information</h2>
-  <p>This box will help us find the problem. Please tell me what you see here.</p>
-  <ul>
-    <li>Current Chapter Number (data.chapterNum): <strong>{data.chapterNum}</strong></li>
-    <li>Total Chapters in Book (data.totalChapters): <strong>{data.totalChapters}</strong></li>
-  </ul>
-  <p>Calculated Previous Chapter: <strong>{prevChapter}</strong></p>
-  <p>Calculated Next Chapter: <strong>{nextChapter}</strong></p>
-</div>
-<main>
-  <nav>
+<svelte:head>
+  <title>{data.bookName} {data.chapterNum} | KJV Bible</title>
+  <meta name="description" content={`Read ${data.bookName} chapter ${data.chapterNum} from the King James Version of the Bible.`} />
+  <script type="application/ld+json">
+    {JSON.stringify(structuredData)}
+  </script>
+</svelte:head>
+
+<nav>
+  <a href="/book/{data.bookName}" class="back-link">← {data.displayName}</a>
+  <div class="chapter-nav">
     {#if prevChapter}
       <a href="/book/{data.bookName}/{prevChapter}" class="nav-link">← Prev</a>
     {:else}
       <span class="nav-link disabled">← Prev</span>
     {/if}
 
-    <a href="/book/{data.bookName}" class="title-link">{data.bookName} {data.chapterNum}</a>
+    <a href="/book/{data.bookName}" class="title-link">{data.displayName} {data.chapterNum}</a>
 
     {#if nextChapter}
       <a href="/book/{data.bookName}/{nextChapter}" class="nav-link">Next →</a>
     {:else}
       <span class="nav-link disabled">Next →</span>
     {/if}
-  </nav>
+  </div>
+</nav>
 
+<div class="actions">
+  <button on:click={cite}>Cite this</button>
+  <button on:click={download}>Download as JSON</button>
+</div>
+
+<div class="chapter-container">
   <article>
     {#each data.verses as verse}
       <p>
@@ -41,31 +75,140 @@
       </p>
     {/each}
   </article>
-</main>
 
+  <aside>
+    <div class="quick-nav">
+      <h3>Quick Navigation</h3>
+      <div class="chapter-list">
+        {#each Array(data.totalChapters) as _, i}
+          <a href="/book/{data.bookName}/{i + 1}" class:current={i + 1 === data.chapterNum}>{i + 1}</a>
+        {/each}
+      </div>
+    </div>
+  </aside>
+</div>
 <style>
-    nav {
-        display: flex; justify-content: space-between; align-items: center;
-        padding: 1em 2em; border-bottom: 1px solid #eee; background-color: #fff;
-        position: sticky; top: 0;
+  nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1em 2em;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--background-color);
+    position: sticky;
+    top: 0;
+  }
+
+  .back-link {
+    text-decoration: none;
+    color: var(--link-color);
+  }
+
+  .chapter-nav {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1em;
+  }
+
+  .title-link {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-color);
+    text-decoration: none;
+  }
+
+  .nav-link {
+    text-decoration: none;
+    color: var(--link-color);
+    padding: 0.5em;
+  }
+
+  .nav-link.disabled {
+    color: #ccc;
+    pointer-events: none;
+  }
+
+  .actions {
+    display: flex;
+    justify-content: center;
+    gap: 1em;
+    margin: 2em 0;
+  }
+
+  button {
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    cursor: pointer;
+    padding: 0.5em 1em;
+    border-radius: 4px;
+  }
+
+  .chapter-container {
+    display: flex;
+    gap: 2em;
+  }
+
+  article {
+    flex: 3;
+  }
+
+  aside {
+    display: none;
+  }
+
+  @media (min-width: 1200px) {
+    aside {
+      display: block;
+      flex: 1;
+      border-left: 1px solid var(--border-color);
+      padding-left: 2em;
     }
-    .title-link {
-        font-size: 1.2rem; font-weight: 600; margin: 0; color: #333; text-decoration: none;
-    }
-    .nav-link {
-        text-decoration: none; color: #007bff; padding: 0.5em;
-    }
-    .nav-link.disabled {
-        color: #ccc; pointer-events: none;
-    }
-    main { font-family: sans-serif; color: #333; }
-    article { max-width: 720px; margin: 3em auto; padding: 0 2em; }
-    p {
-        font-size: 1.2rem; line-height: 1.8; margin-bottom: 1em;
-        position: relative; padding-left: 2em;
-    }
-    .verse-num {
-        position: absolute; left: 0; top: 0;
-        font-size: 0.8rem; color: #999;
-    }
+  }
+
+  .quick-nav h3 {
+    font-size: 1.2rem;
+    color: var(--text-color);
+    margin-bottom: 1em;
+  }
+
+  .chapter-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+    gap: 0.5em;
+  }
+
+  .chapter-list a {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0.5em;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    text-decoration: none;
+    color: var(--text-color);
+  }
+
+  .chapter-list a.current {
+    background-color: var(--text-color);
+    color: var(--background-color);
+  }
+
+  p {
+    font-size: var(--font-size);
+    line-height: 1.8;
+    margin-bottom: 1em;
+    position: relative;
+    padding-left: 2.5em;
+  }
+
+  .verse-num {
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-size: 0.8rem;
+    color: #999;
+  }
 </style>
