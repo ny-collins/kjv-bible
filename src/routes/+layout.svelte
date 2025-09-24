@@ -1,9 +1,11 @@
 <script>
   import Header from '$lib/components/Header.svelte';
   import Footer from '$lib/components/Footer.svelte';
+  import Loader from '$lib/components/Loader.svelte';
   import '../app.css';
 </script>
 
+<Loader />
 <Header />
 
 <main id="main-content">
